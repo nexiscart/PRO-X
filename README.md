@@ -10,13 +10,14 @@ Pro Roofing AI is a comprehensive artificial intelligence system designed specif
 
 ### 🚀 Key Features
 
-- **🧠 Custom Fine-Tuned AI Models**: Specialized models trained on 200K+ roofing industry examples
+- **🧠 Qwen3-14B Fine-Tuned Model**: Advanced model trained on 400K+ roofing industry examples + NRCA manuals
 - **🤖 Intelligent Agent System**: Multi-agent orchestration for lead generation, bidding, and customer management
-- **📊 Data Processing Pipeline**: Advanced data processing and validation for training datasets
+- **📊 Advanced Data Processing**: Handles JSON datasets + PDF manual extraction and processing
 - **💰 Automated Bidding**: AI-powered bidding system with blueprint reading capabilities
 - **📧 Email Automation**: Intelligent email outreach and customer communication
 - **🔗 CRM Integration**: Seamless integration with popular CRM systems
 - **📈 Performance Analytics**: Real-time monitoring and optimization
+- **⚡ Lambda Labs Optimized**: One-command setup and training for Lambda Labs GPU instances
 
 ## 📁 Project Structure
 
@@ -92,15 +93,16 @@ Required environment variables:
 - `DATABASE_URL`: Database connection string
 - `SMTP_CONFIG`: Email server configuration
 
-## 📊 Datasets
+## 📊 Training Data (400K+ Examples)
 
-The system includes 12 specialized datasets totaling 200K+ examples:
+The system includes 12 specialized JSON datasets + NRCA manuals:
 
+### JSON Datasets:
 1. **Blueprint Reading & Bidding** (10K examples)
 2. **Building Codes & Standards** (8K examples)
-3. **Commercial Construction Contracts** (1M examples)
+3. **Commercial Construction Contracts** (15K examples)
 4. **Commercial Suppliers Mastery** (15K examples)
-5. **Roofing Expert Training** (1050 examples)
+5. **Roofing Expert Training** (1,050 examples)
 6. **Roofing Mastery Training** (70K examples)
 7. **Roofing Systems Specifications** (7K examples)
 8. **Ultimate Roofing AI Master** (200K examples)
@@ -109,15 +111,39 @@ The system includes 12 specialized datasets totaling 200K+ examples:
 11. **Ultimate Roofing Mastery 130K Complete** (130K examples)
 12. **World Class Sales Mastery** (10K examples)
 
-## 🚀 Usage
+### NRCA Manuals:
+- Technical specifications and standards
+- Installation procedures and best practices
+- Safety protocols and code compliance
+- Material performance characteristics
 
-### Training a Model
+## 🚀 Quick Start
+
+### One-Command Setup & Training
 
 ```bash
-# Process and validate data
+# Complete setup and data processing
+./quick_start.sh
+
+# Then start training
+python src/fine_tuning/trainer.py --config config/training_config.yaml
+```
+
+### Lambda Labs GPU Training
+
+```bash
+# On Lambda Labs instance, run:
+bash deployment/lambda_labs/setup_lambda.sh
+bash deployment/lambda_labs/launch_training.sh
+```
+
+### Manual Training Steps
+
+```bash
+# 1. Process and validate data (includes AI Drive datasets + NRCA manuals)
 python src/data/enhanced_data_processor.py
 
-# Start training
+# 2. Start Qwen3-14B fine-tuning
 python src/fine_tuning/trainer.py --config config/training_config.yaml
 ```
 
