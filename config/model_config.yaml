@@ -3,19 +3,19 @@
 # Base Model Settings
 base_model:
   # Primary Models
-  llama2_7b:
-    name: "meta-llama/Llama-2-7b-chat-hf"
-    context_length: 4096
+  qwen3_14b:
+    name: "Qwen/Qwen3-14B-Instruct"
+    context_length: 32768
+    parameter_count: "14B"
+    recommended_gpu_memory: "48GB"
+    training_time_estimate: "6-10 hours"
+    
+  qwen3_7b:
+    name: "Qwen/Qwen3-7B-Instruct"
+    context_length: 32768
     parameter_count: "7B"
     recommended_gpu_memory: "24GB"
     training_time_estimate: "4-6 hours"
-    
-  llama2_13b:
-    name: "meta-llama/Llama-2-13b-chat-hf"
-    context_length: 4096
-    parameter_count: "13B"
-    recommended_gpu_memory: "40GB"
-    training_time_estimate: "8-12 hours"
     
   mistral_7b:
     name: "mistralai/Mistral-7B-Instruct-v0.1"

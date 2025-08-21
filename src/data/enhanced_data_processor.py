@@ -69,7 +69,7 @@ Use your thinking mode for complex calculations, technical specifications, and s
             'world_class_sales_mastery': self.process_sales_mastery
         }
         
-        # Process each file found
+        # Process JSON files
         for file_path in data_path.glob("*.json"):
             filename = file_path.stem.lower()
             
@@ -87,6 +87,14 @@ Use your thinking mode for complex calculations, technical specifications, and s
                 self.logger.info(f"✅ Processed {count} examples from {file_path.name}")
             else:
                 self.logger.warning(f"⚠️  No processor found for: {file_path.name}")
+        
+        # Process NRCA manuals if available
+        nrca_path = Path("data/nrca_manuals")
+        if nrca_path.exists():
+            self.logger.info("📚 Processing NRCA manuals...")
+            count = self.process_nrca_manuals(nrca_path)
+            processed_count += count
+            self.logger.info(f"✅ Processed {count} examples from NRCA manuals")
         
         # Add meta-conversations about the system
         self.add_meta_system_conversations()
@@ -260,6 +268,178 @@ Use your thinking mode for complex calculations, technical specifications, and s
                 count += 1
         
         return count
+
+    def process_nrca_manuals(self, nrca_path: Path) -> int:
+        """Process NRCA manual PDFs and extract training conversations"""
+        count = 0
+        
+        try:
+            import PyPDF2
+            from io import StringIO
+            
+            for pdf_file in nrca_path.glob("*.pdf"):
+                self.logger.info(f"📄 Processing PDF: {pdf_file.name}")
+                
+                try:
+                    with open(pdf_file, 'rb') as file:
+                        pdf_reader = PyPDF2.PdfReader(file)
+                        
+                        # Extract text from each page
+                        for page_num, page in enumerate(pdf_reader.pages):
+                            text = page.extract_text()
+                            
+                            if len(text.strip()) > 100:  # Only process pages with substantial content
+                                # Create training conversations from manual content
+                                conversations = self.create_manual_conversations(text, pdf_file.name, page_num)
+                                self.training_data.extend(conversations)
+                                count += len(conversations)
+                
+                except Exception as e:
+                    self.logger.warning(f"⚠️  Error processing {pdf_file.name}: {e}")
+                    continue
+        
+        except ImportError:
+            self.logger.warning("⚠️  PyPDF2 not available. Install with: pip install PyPDF2")
+            
+            # Try to process any pre-extracted text files instead
+            for txt_file in nrca_path.glob("*.txt"):
+                self.logger.info(f"📄 Processing text file: {txt_file.name}")
+                
+                try:
+                    with open(txt_file, 'r', encoding='utf-8') as f:
+                        text = f.read()
+                        conversations = self.create_manual_conversations(text, txt_file.name, 0)
+                        self.training_data.extend(conversations)
+                        count += len(conversations)
+                except Exception as e:
+                    self.logger.warning(f"⚠️  Error processing {txt_file.name}: {e}")
+        
+        return count
+
+    def create_manual_conversations(self, text: str, source_file: str, page_num: int) -> List[Dict]:
+        """Create training conversations from manual content"""
+        conversations = []
+        
+        # Split text into meaningful chunks
+        chunks = self.split_manual_text(text)
+        
+        for i, chunk in enumerate(chunks):
+            if len(chunk.strip()) < 50:  # Skip very short chunks
+                continue
+                
+            # Create different types of conversations from the manual content
+            conversation_types = [
+                self.create_technical_question_from_manual(chunk),
+                self.create_specification_question_from_manual(chunk),
+                self.create_application_question_from_manual(chunk)
+            ]
+            
+            for conv_type in conversation_types:
+                if conv_type:  # Only add if conversation was successfully created
+                    # Add source metadata
+                    conv_type["source"] = f"{source_file}_page_{page_num}_chunk_{i}"
+                    conversations.append(conv_type)
+        
+        return conversations
+
+    def split_manual_text(self, text: str) -> List[str]:
+        """Split manual text into meaningful chunks"""
+        # Clean the text first
+        text = re.sub(r'\s+', ' ', text.strip())
+        
+        # Split by sections, paragraphs, or sentences
+        chunks = []
+        
+        # Try to split by section headers first
+        section_pattern = r'\n\s*(?:\d+\.|\w+\.|[A-Z][A-Z\s]{5,})\s*\n'
+        sections = re.split(section_pattern, text)
+        
+        for section in sections:
+            if len(section.strip()) > 200:
+                # Further split long sections by paragraphs
+                paragraphs = section.split('\n\n')
+                for para in paragraphs:
+                    if len(para.strip()) > 100:
+                        chunks.append(para.strip())
+            elif len(section.strip()) > 50:
+                chunks.append(section.strip())
+        
+        # If no good sections found, split by sentences
+        if len(chunks) < 3:
+            sentences = re.split(r'(?<=[.!?])\s+', text)
+            current_chunk = ""
+            
+            for sentence in sentences:
+                if len(current_chunk + sentence) > 300:
+                    if current_chunk:
+                        chunks.append(current_chunk.strip())
+                    current_chunk = sentence
+                else:
+                    current_chunk += " " + sentence
+            
+            if current_chunk:
+                chunks.append(current_chunk.strip())
+        
+        return chunks
+
+    def create_technical_question_from_manual(self, text: str) -> Optional[Dict]:
+        """Create technical question from manual text"""
+        # Extract key technical information
+        technical_terms = re.findall(r'\b(?:membrane|flashing|fastener|insulation|drainage|slope|seam)\b', text.lower())
+        
+        if not technical_terms:
+            return None
+        
+        # Generate appropriate question
+        question_templates = [
+            f"What are the technical requirements for {technical_terms[0]} according to NRCA standards?",
+            f"How should {technical_terms[0]} be properly installed in commercial roofing?",
+            f"What are the performance specifications for {technical_terms[0]}?",
+            "Can you explain the technical details mentioned in this roofing specification?",
+            "What are the key technical considerations for this roofing component?"
+        ]
+        
+        question = random.choice(question_templates)
+        
+        return {
+            "messages": [
+                {"role": "system", "content": self.roofing_system_prompt},
+                {"role": "user", "content": question},
+                {"role": "assistant", "content": f"<think>\nThis is a technical question about roofing standards from NRCA manual content. I need to provide detailed, accurate technical guidance.\n</think>\n\nBased on NRCA standards and industry best practices:\n\n{text}\n\nThis specification ensures proper performance, durability, and code compliance for commercial roofing applications."}
+            ]
+        }
+
+    def create_specification_question_from_manual(self, text: str) -> Optional[Dict]:
+        """Create specification question from manual text"""
+        # Look for specification-related content
+        spec_indicators = ['specification', 'requirement', 'standard', 'code', 'minimum', 'maximum', 'shall', 'must']
+        
+        if not any(indicator in text.lower() for indicator in spec_indicators):
+            return None
+        
+        return {
+            "messages": [
+                {"role": "system", "content": self.roofing_system_prompt},
+                {"role": "user", "content": "What specifications should I follow for this roofing application?"},
+                {"role": "assistant", "content": f"<think>\nThis appears to be specification content from NRCA manuals. I should provide clear, actionable specification guidance.\n</think>\n\nFor this roofing application, here are the key specifications to follow:\n\n{text}\n\nThese specifications are based on NRCA guidelines and ensure compliance with industry standards for safety, performance, and longevity."}
+            ]
+        }
+
+    def create_application_question_from_manual(self, text: str) -> Optional[Dict]:
+        """Create application/installation question from manual text"""
+        # Look for installation or application guidance
+        app_indicators = ['install', 'apply', 'place', 'attach', 'secure', 'procedure', 'method', 'technique']
+        
+        if not any(indicator in text.lower() for indicator in app_indicators):
+            return None
+        
+        return {
+            "messages": [
+                {"role": "system", "content": self.roofing_system_prompt},
+                {"role": "user", "content": "How should I properly install or apply this roofing component?"},
+                {"role": "assistant", "content": f"<think>\nThis is installation guidance from NRCA manuals. I need to provide step-by-step, safety-focused installation instructions.\n</think>\n\nFor proper installation of this roofing component, follow these guidelines:\n\n{text}\n\nAlways prioritize safety protocols and ensure compliance with local building codes during installation."}
+            ]
+        }
 
     def create_blueprint_conversation(self, item: Dict) -> Dict:
         """Create conversation from blueprint/bidding data"""

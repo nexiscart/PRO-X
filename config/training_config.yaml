@@ -2,12 +2,13 @@
 
 # Model Configuration
 model:
-  name: "meta-llama/Llama-2-7b-chat-hf"  # Base model to fine-tune
+  name: "Qwen/Qwen3-14B-Instruct"  # Qwen3 14B model for fine-tuning
   cache_dir: "./models/base"
-  torch_dtype: "float16"  # Use float16 for memory efficiency
+  torch_dtype: "bfloat16"  # Use bfloat16 for better stability with Qwen
   device_map: "auto"
   load_in_8bit: false
   load_in_4bit: true  # Enable 4-bit quantization for memory efficiency
+  trust_remote_code: true  # Required for Qwen models
 
 # LoRA Configuration (Parameter Efficient Fine-tuning)
 lora:
@@ -83,13 +84,15 @@ data:
 # WandB Configuration
 wandb:
   project: "pro-roofing-ai"
-  name: "roofing-llama2-7b-lora"
+  name: "roofing-qwen3-14b-lora"
   tags:
     - "roofing"
-    - "llama2"
+    - "qwen3"
+    - "14b"
     - "lora"
     - "fine-tuning"
-  notes: "Fine-tuning Llama-2-7b on roofing industry data"
+    - "400k-examples"
+  notes: "Fine-tuning Qwen3-14B on 400K+ roofing industry examples including manuals and PDFs"
   
 # Early Stopping
 early_stopping:
