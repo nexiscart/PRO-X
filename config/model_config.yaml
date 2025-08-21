@@ -1,0 +1,230 @@
+# Pro Roofing AI Model Configuration
+
+# Base Model Settings
+base_model:
+  # Primary Models
+  llama2_7b:
+    name: "meta-llama/Llama-2-7b-chat-hf"
+    context_length: 4096
+    parameter_count: "7B"
+    recommended_gpu_memory: "24GB"
+    training_time_estimate: "4-6 hours"
+    
+  llama2_13b:
+    name: "meta-llama/Llama-2-13b-chat-hf"
+    context_length: 4096
+    parameter_count: "13B"
+    recommended_gpu_memory: "40GB"
+    training_time_estimate: "8-12 hours"
+    
+  mistral_7b:
+    name: "mistralai/Mistral-7B-Instruct-v0.1"
+    context_length: 8192
+    parameter_count: "7B"
+    recommended_gpu_memory: "24GB"
+    training_time_estimate: "3-5 hours"
+    
+  # Alternative Models
+  code_llama_7b:
+    name: "codellama/CodeLlama-7b-Instruct-hf"
+    context_length: 16384
+    parameter_count: "7B"
+    recommended_gpu_memory: "24GB"
+    training_time_estimate: "4-6 hours"
+
+# Model Serving Configuration
+serving:
+  # Development Settings
+  development:
+    model_path: "./models/final"
+    device: "cuda"
+    torch_dtype: "float16"
+    max_memory: "auto"
+    load_in_8bit: true
+    
+  # Production Settings
+  production:
+    model_path: "./models/final"
+    device: "cuda"
+    torch_dtype: "float16"
+    max_memory: "auto"
+    load_in_4bit: false
+    batch_size: 8
+    max_concurrent_requests: 10
+
+# Generation Parameters
+generation:
+  # Conservative (for bidding and contracts)
+  conservative:
+    temperature: 0.3
+    top_p: 0.85
+    top_k: 40
+    repetition_penalty: 1.05
+    max_new_tokens: 1024
+    do_sample: true
+    
+  # Balanced (general roofing advice)
+  balanced:
+    temperature: 0.7
+    top_p: 0.9
+    top_k: 50
+    repetition_penalty: 1.1
+    max_new_tokens: 512
+    do_sample: true
+    
+  # Creative (marketing and sales)
+  creative:
+    temperature: 0.9
+    top_p: 0.95
+    top_k: 60
+    repetition_penalty: 1.15
+    max_new_tokens: 800
+    do_sample: true
+
+# Task-Specific Configurations
+tasks:
+  # Lead Generation
+  lead_generation:
+    model_type: "creative"
+    system_prompt: "You are a professional roofing lead generation specialist..."
+    max_tokens: 300
+    temperature: 0.8
+    
+  # Bidding and Estimates
+  bidding:
+    model_type: "conservative"
+    system_prompt: "You are an expert roofing contractor providing accurate estimates..."
+    max_tokens: 1000
+    temperature: 0.4
+    
+  # Customer Support
+  customer_support:
+    model_type: "balanced"
+    system_prompt: "You are a helpful roofing customer service representative..."
+    max_tokens: 400
+    temperature: 0.6
+    
+  # Technical Documentation
+  technical_docs:
+    model_type: "conservative"
+    system_prompt: "You are a roofing technical documentation expert..."
+    max_tokens: 800
+    temperature: 0.3
+    
+  # Sales and Marketing
+  sales_marketing:
+    model_type: "creative"
+    system_prompt: "You are a roofing sales and marketing expert..."
+    max_tokens: 600
+    temperature: 0.8
+
+# Prompt Templates
+prompts:
+  # System Prompts
+  system:
+    base: |
+      You are an expert AI assistant specialized in the roofing industry. 
+      You have extensive knowledge of roofing materials, techniques, building codes, 
+      safety regulations, and business practices. Always provide accurate, 
+      professional, and helpful responses based on industry best practices.
+      
+    lead_generation: |
+      You are a professional lead generation specialist for roofing companies. 
+      Your goal is to help identify and qualify potential roofing customers. 
+      Focus on pain points, urgency, and budget qualification while maintaining 
+      a helpful and professional tone.
+      
+    bidding: |
+      You are an experienced roofing contractor and estimator. You provide 
+      accurate, detailed, and competitive bids for roofing projects. Consider 
+      materials, labor, permits, disposal, and local market rates. Always 
+      include detailed breakdowns and justify your pricing.
+      
+    technical: |
+      You are a roofing technical expert with deep knowledge of building codes, 
+      installation procedures, material specifications, and safety protocols. 
+      Provide detailed, accurate technical guidance following industry standards.
+
+  # User Prompts
+  user_templates:
+    estimate_request: |
+      Generate a detailed roofing estimate for: {project_description}
+      Property details: {property_details}
+      Special requirements: {special_requirements}
+      
+    lead_qualification: |
+      Help me qualify this potential roofing lead:
+      Contact info: {contact_info}
+      Initial inquiry: {inquiry}
+      Property type: {property_type}
+      
+    technical_question: |
+      Provide technical guidance for: {technical_issue}
+      Current situation: {current_situation}
+      Desired outcome: {desired_outcome}
+
+# Model Performance Targets
+performance_targets:
+  accuracy:
+    lead_qualification: 0.85
+    estimate_accuracy: 0.90
+    technical_responses: 0.95
+    
+  response_time:
+    development: "< 2 seconds"
+    production: "< 1 second"
+    
+  throughput:
+    requests_per_second: 10
+    concurrent_users: 50
+
+# Quality Assurance
+quality:
+  # Response Validation
+  validation:
+    min_response_length: 50
+    max_response_length: 2000
+    required_keywords: ["roofing", "roof", "material", "installation"]
+    prohibited_content: ["medical advice", "legal advice"]
+    
+  # Fallback Responses
+  fallbacks:
+    no_confidence: "I need more information to provide an accurate response about this roofing question."
+    technical_limit: "This technical question requires on-site inspection by a certified roofing professional."
+    outside_scope: "This question is outside my roofing expertise. Please consult with a relevant specialist."
+
+# Integration Settings
+integrations:
+  # OpenAI API (fallback)
+  openai:
+    model: "gpt-4"
+    temperature: 0.7
+    max_tokens: 1000
+    
+  # Anthropic (alternative)
+  anthropic:
+    model: "claude-3-sonnet-20240229"
+    temperature: 0.7
+    max_tokens: 1000
+
+# Monitoring and Metrics
+monitoring:
+  # Performance Metrics
+  metrics:
+    - response_time
+    - token_usage
+    - accuracy_score
+    - user_satisfaction
+    
+  # Logging
+  logging:
+    level: "INFO"
+    log_requests: true
+    log_responses: true
+    log_errors: true
+    
+  # Alerts
+  alerts:
+    response_time_threshold: 3.0
+    error_rate_threshold: 0.05
+    accuracy_threshold: 0.80

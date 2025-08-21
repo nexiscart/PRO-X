@@ -1,0 +1,335 @@
+# Pro Roofing AI Agent Configuration
+
+# Global Agent Settings
+global:
+  # Model configuration
+  model:
+    name: "roofing-llama2-7b-lora"
+    path: "./models/final"
+    fallback_model: "gpt-4"
+    
+  # Default generation parameters
+  generation:
+    temperature: 0.7
+    max_tokens: 1000
+    top_p: 0.9
+    frequency_penalty: 0.1
+    presence_penalty: 0.1
+  
+  # Memory and context
+  memory:
+    max_context_length: 4000
+    conversation_buffer_size: 10
+    long_term_memory_enabled: true
+  
+  # Performance settings
+  performance:
+    max_concurrent_requests: 10
+    request_timeout_seconds: 30
+    retry_attempts: 3
+    retry_delay_seconds: 1
+
+# Agent Orchestrator
+orchestrator:
+  name: "RoofingAIOrchestrator"
+  description: "Master controller for all roofing AI agents"
+  
+  # Routing configuration
+  routing:
+    lead_generation_keywords:
+      - "lead"
+      - "prospect"
+      - "potential customer"
+      - "marketing"
+      - "outreach"
+    
+    bidding_keywords:
+      - "bid"
+      - "estimate"
+      - "quote"
+      - "pricing"
+      - "cost"
+      - "blueprint"
+    
+    technical_keywords:
+      - "specification"
+      - "material"
+      - "installation"
+      - "code"
+      - "safety"
+    
+    supplier_keywords:
+      - "supplier"
+      - "vendor"
+      - "material"
+      - "procurement"
+      - "inventory"
+  
+  # Load balancing
+  load_balancing:
+    algorithm: "round_robin"  # Options: round_robin, least_connections, weighted
+    health_check_interval: 60
+    max_queue_size: 100
+
+# Lead Generation Agent
+lead_agent:
+  name: "RoofingLeadAgent"
+  description: "AI agent specialized in lead generation and qualification"
+  
+  # Model settings
+  model:
+    temperature: 0.8
+    max_tokens: 400
+    top_p: 0.95
+  
+  # Lead qualification criteria
+  qualification:
+    min_score: 70
+    scoring_factors:
+      budget_range: 30
+      timeline_urgency: 25
+      decision_authority: 25
+      project_scope: 20
+    
+    disqualifiers:
+      - "no budget"
+      - "just curious"
+      - "price shopping only"
+  
+  # Outreach templates
+  templates:
+    cold_email: "templates/lead_cold_email.txt"
+    follow_up: "templates/lead_follow_up.txt"
+    qualification: "templates/lead_qualification.txt"
+  
+  # Integration settings
+  crm_integration:
+    auto_create_leads: true
+    lead_source: "AI Agent"
+    default_status: "New"
+    assign_to_rep: true
+
+# Bidding Agent
+bidding_agent:
+  name: "RoofingBiddingAgent"
+  description: "AI agent for automated bidding and estimation"
+  
+  # Model settings
+  model:
+    temperature: 0.3  # Conservative for accuracy
+    max_tokens: 1200
+    top_p: 0.85
+  
+  # Pricing configuration
+  pricing:
+    # Base rates per square foot
+    material_rates:
+      tpo: 8.50
+      epdm: 7.25
+      pvc: 9.75
+      modified_bitumen: 6.50
+      built_up: 5.75
+      metal: 12.00
+    
+    # Labor multipliers
+    labor_multipliers:
+      simple: 1.0
+      moderate: 1.3
+      complex: 1.8
+      high_risk: 2.2
+    
+    # Regional adjustments
+    regional_multipliers:
+      northeast: 1.15
+      west_coast: 1.25
+      southeast: 0.95
+      midwest: 1.00
+  
+  # Blueprint analysis
+  blueprint_analysis:
+    enabled: true
+    confidence_threshold: 0.8
+    manual_review_required: true
+  
+  # Proposal generation
+  proposal:
+    include_warranty: true
+    include_maintenance_plan: true
+    payment_terms: "30% down, 40% at material delivery, 30% on completion"
+    warranty_years: 10
+
+# Email Agent
+email_agent:
+  name: "RoofingEmailAgent"
+  description: "AI agent for email automation and customer communication"
+  
+  # Email settings
+  smtp:
+    host: "${SMTP_HOST}"
+    port: "${SMTP_PORT}"
+    username: "${SMTP_USERNAME}"
+    password: "${SMTP_PASSWORD}"
+    use_tls: true
+  
+  # Template management
+  templates:
+    welcome: "templates/email_welcome.html"
+    estimate_ready: "templates/email_estimate_ready.html"
+    project_update: "templates/email_project_update.html"
+    completion: "templates/email_completion.html"
+    follow_up: "templates/email_follow_up.html"
+  
+  # Automation rules
+  automation:
+    welcome_email_delay: 0  # Send immediately
+    follow_up_delay_days: 3
+    estimate_reminder_days: 7
+    max_follow_ups: 3
+  
+  # Personalization
+  personalization:
+    use_recipient_name: true
+    include_project_details: true
+    reference_previous_interactions: true
+
+# Supplier Agent
+supplier_agent:
+  name: "RoofingSupplierAgent"
+  description: "AI agent for supplier relationship management"
+  
+  # Supplier database
+  preferred_suppliers:
+    tpo_membrane:
+      - name: "ABC Roofing Supply"
+        contact: "orders@abcroofing.com"
+        discount_tier: "gold"
+        delivery_days: 2
+      
+    tools_equipment:
+      - name: "Professional Tools Inc"
+        contact: "sales@protools.com"
+        discount_tier: "silver"
+        delivery_days: 1
+  
+  # Procurement automation
+  procurement:
+    auto_quote_threshold: 5000  # Auto-request quotes for orders over $5000
+    preferred_supplier_first: true
+    require_multiple_quotes: true
+  
+  # Inventory management
+  inventory:
+    track_usage: true
+    reorder_alerts: true
+    minimum_stock_levels:
+      tpo_adhesive: 50
+      screws: 10000
+      insulation: 100
+
+# Analytics Agent
+analytics_agent:
+  name: "RoofingAnalyticsAgent"
+  description: "AI agent for performance analytics and insights"
+  
+  # Metrics tracking
+  metrics:
+    lead_conversion_rate: true
+    bid_win_rate: true
+    project_profitability: true
+    customer_satisfaction: true
+    agent_performance: true
+  
+  # Reporting
+  reports:
+    daily_summary: true
+    weekly_performance: true
+    monthly_analysis: true
+    custom_dashboards: true
+  
+  # Alerts and notifications
+  alerts:
+    low_conversion_rate: 0.15  # Alert if below 15%
+    high_bid_rejection: 0.70   # Alert if rejection rate above 70%
+    overdue_follow_ups: 5      # Alert if more than 5 overdue
+  
+  # Data sources
+  data_sources:
+    crm_data: true
+    email_metrics: true
+    financial_data: true
+    project_data: true
+
+# Agent Communication
+communication:
+  # Inter-agent messaging
+  messaging:
+    protocol: "redis"
+    channel_prefix: "roofing_ai"
+    message_ttl: 3600
+  
+  # Event system
+  events:
+    lead_qualified: ["bidding_agent", "email_agent"]
+    estimate_completed: ["email_agent", "analytics_agent"]
+    project_started: ["supplier_agent", "analytics_agent"]
+    project_completed: ["email_agent", "analytics_agent"]
+
+# Error Handling and Fallbacks
+error_handling:
+  # Retry configuration
+  retry:
+    max_attempts: 3
+    backoff_multiplier: 2
+    max_delay: 300
+  
+  # Fallback strategies
+  fallbacks:
+    model_unavailable: "use_openai_api"
+    api_rate_limit: "queue_request"
+    unknown_intent: "transfer_to_human"
+  
+  # Logging
+  error_logging:
+    log_level: "ERROR"
+    include_stack_trace: true
+    notify_admin: true
+
+# Security and Compliance
+security:
+  # Access control
+  access_control:
+    require_authentication: true
+    role_based_permissions: true
+    audit_all_actions: true
+  
+  # Data protection
+  data_protection:
+    encrypt_sensitive_data: true
+    anonymize_logs: true
+    gdpr_compliance: true
+  
+  # Rate limiting
+  rate_limiting:
+    requests_per_minute: 60
+    burst_allowance: 10
+    block_duration: 300
+
+# Performance Optimization
+optimization:
+  # Caching
+  caching:
+    response_cache_ttl: 1800
+    model_cache_size: 100
+    conversation_cache: true
+  
+  # Batching
+  batching:
+    batch_size: 10
+    batch_timeout: 5
+    auto_batching: true
+  
+  # Load balancing
+  load_balancing:
+    distribute_requests: true
+    health_monitoring: true
+    auto_scaling: false  # Manual scaling for now

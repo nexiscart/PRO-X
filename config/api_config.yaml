@@ -1,0 +1,254 @@
+# Pro Roofing AI API Configuration
+
+# Server Configuration
+server:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 4
+  timeout: 300
+  max_requests_per_worker: 1000
+  
+  # SSL Configuration (for production)
+  ssl:
+    enabled: false
+    cert_file: null
+    key_file: null
+
+# API Settings
+api:
+  title: "Pro Roofing AI API"
+  description: "Advanced AI system for roofing industry automation"
+  version: "1.0.0"
+  
+  # Rate Limiting
+  rate_limit:
+    enabled: true
+    requests_per_minute: 60
+    requests_per_hour: 1000
+    burst_size: 10
+  
+  # CORS Settings
+  cors:
+    enabled: true
+    origins:
+      - "http://localhost:3000"
+      - "http://localhost:8080"
+      - "https://proroofingai.com"
+    methods: ["GET", "POST", "PUT", "DELETE"]
+    headers: ["*"]
+  
+  # Authentication
+  auth:
+    enabled: true
+    jwt_secret_key: "${JWT_SECRET}"
+    access_token_expire_minutes: 30
+    refresh_token_expire_days: 7
+    algorithm: "HS256"
+
+# Model Serving
+models:
+  # Default model for general queries
+  default:
+    name: "roofing-llama2-7b-lora"
+    path: "./models/final"
+    device: "cuda"
+    max_batch_size: 8
+    max_sequence_length: 2048
+    
+  # Specialized models for different tasks
+  bidding:
+    name: "roofing-bidding-specialist"
+    path: "./models/final"
+    temperature: 0.3
+    max_tokens: 1000
+    
+  lead_generation:
+    name: "roofing-lead-gen"
+    path: "./models/final"
+    temperature: 0.8
+    max_tokens: 400
+    
+  technical:
+    name: "roofing-technical"
+    path: "./models/final"
+    temperature: 0.2
+    max_tokens: 800
+
+# Database Configuration
+database:
+  # PostgreSQL for main data
+  postgres:
+    host: "${DB_HOST:-localhost}"
+    port: "${DB_PORT:-5432}"
+    database: "${DB_NAME:-proroofingai}"
+    username: "${DB_USER:-postgres}"
+    password: "${DB_PASSWORD}"
+    pool_size: 10
+    max_overflow: 20
+  
+  # Redis for caching
+  redis:
+    host: "${REDIS_HOST:-localhost}"
+    port: "${REDIS_PORT:-6379}"
+    db: 0
+    password: "${REDIS_PASSWORD}"
+    decode_responses: true
+
+# External APIs
+external_apis:
+  # OpenAI (fallback)
+  openai:
+    api_key: "${OPENAI_API_KEY}"
+    model: "gpt-4"
+    max_tokens: 1000
+    temperature: 0.7
+    timeout: 30
+  
+  # CRM Integrations
+  hubspot:
+    api_key: "${HUBSPOT_API_KEY}"
+    base_url: "https://api.hubapi.com"
+    timeout: 30
+  
+  salesforce:
+    client_id: "${SALESFORCE_CLIENT_ID}"
+    client_secret: "${SALESFORCE_CLIENT_SECRET}"
+    username: "${SALESFORCE_USERNAME}"
+    password: "${SALESFORCE_PASSWORD}"
+    security_token: "${SALESFORCE_SECURITY_TOKEN}"
+    sandbox: false
+  
+  # Email Services
+  sendgrid:
+    api_key: "${SENDGRID_API_KEY}"
+    from_email: "noreply@proroofingai.com"
+    from_name: "Pro Roofing AI"
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+  # File handlers
+  handlers:
+    api:
+      filename: "logs/system/api.log"
+      max_bytes: 10485760  # 10MB
+      backup_count: 5
+    
+    agents:
+      filename: "logs/agents/agents.log"
+      max_bytes: 10485760
+      backup_count: 5
+    
+    performance:
+      filename: "logs/performance/performance.log"
+      max_bytes: 10485760
+      backup_count: 5
+
+# Monitoring and Metrics
+monitoring:
+  # Prometheus metrics
+  prometheus:
+    enabled: true
+    port: 9090
+    path: "/metrics"
+  
+  # Health checks
+  health:
+    enabled: true
+    path: "/health"
+    detailed_path: "/health/detailed"
+  
+  # Performance tracking
+  performance:
+    track_requests: true
+    track_model_latency: true
+    track_memory_usage: true
+
+# Security
+security:
+  # Input validation
+  validation:
+    max_input_length: 10000
+    forbidden_patterns:
+      - "DROP TABLE"
+      - "DELETE FROM"
+      - "INSERT INTO"
+      - "<script>"
+  
+  # Content filtering
+  content_filter:
+    enabled: true
+    block_inappropriate: true
+    block_personal_info: true
+  
+  # Rate limiting by IP
+  ip_rate_limit:
+    enabled: true
+    max_requests_per_minute: 100
+    blacklist_duration_minutes: 15
+
+# Caching
+cache:
+  # Model response caching
+  model_cache:
+    enabled: true
+    ttl_seconds: 3600
+    max_size: 1000
+  
+  # API response caching
+  api_cache:
+    enabled: true
+    ttl_seconds: 300
+    max_size: 10000
+
+# Background Tasks
+background_tasks:
+  # Celery configuration
+  celery:
+    broker_url: "${REDIS_URL}"
+    result_backend: "${REDIS_URL}"
+    task_serializer: "json"
+    accept_content: ["json"]
+    result_serializer: "json"
+    timezone: "UTC"
+    
+  # Scheduled tasks
+  scheduled_tasks:
+    model_health_check:
+      schedule: "*/5 * * * *"  # Every 5 minutes
+      enabled: true
+    
+    cleanup_old_logs:
+      schedule: "0 2 * * *"  # Daily at 2 AM
+      enabled: true
+      retention_days: 30
+
+# Development Settings
+development:
+  debug: true
+  reload: true
+  access_log: true
+  log_level: "DEBUG"
+  
+# Production Settings
+production:
+  debug: false
+  reload: false
+  access_log: true
+  log_level: "INFO"
+  
+  # Performance optimizations
+  workers: 8
+  worker_class: "uvicorn.workers.UvicornWorker"
+  max_requests: 1000
+  max_requests_jitter: 100
+  preload_app: true
+
+# Testing Configuration
+testing:
+  database_url: "sqlite:///test.db"
+  redis_url: "redis://localhost:6379/1"
+  disable_auth: true
+  mock_external_apis: true
